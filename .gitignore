@@ -1,0 +1,11 @@
+# Ignore credentials and token files
+credentials.json
+token.json
+
+# Ignore Python environment files
+*.pyc
+__pycache__/
+.env
+
+# Ignore system files
+.DS_Store
