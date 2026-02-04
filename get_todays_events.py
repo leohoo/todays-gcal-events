@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from __future__ import print_function
 import datetime
 import os.path
@@ -52,9 +53,8 @@ def main():
     else:
         print('Today\'s events:')
         for event in events:
-            if event.get('eventType') == 'default':
-                # Only print events of type 'default'
-                print(f"- {event['summary']}")
+            if event.get('eventType') == 'default' or event.get('eventType') == 'focusTime':
+                print(f" - {event['summary']}")
 
 if __name__ == '__main__':
     main()
