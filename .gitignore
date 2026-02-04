@@ -9,3 +9,6 @@ __pycache__/
 
 # Ignore system files
 .DS_Store
+
+# Claude Code config (contains personal skills and settings)
+.claude/
