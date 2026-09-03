@@ -12,6 +12,13 @@ from datetime import timezone
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+def is_declined(event):
+    """True if the user declined this invitation."""
+    for attendee in event.get('attendees', []):
+        if attendee.get('self') and attendee.get('responseStatus') == 'declined':
+            return True
+    return False
+
 def main():
     """Shows basic usage of the Google Calendar API."""
     creds = None
@@ -61,8 +68,11 @@ def main():
     else:
         print('Today\'s events:')
         for event in events:
-            if event.get('eventType') == 'default' or event.get('eventType') == 'focusTime':
-                print(f" - {event['summary']}")
+            if event.get('eventType') not in ('default', 'focusTime'):
+                continue
+            if is_declined(event):
+                continue
+            print(f" - {event['summary']}")
 
 if __name__ == '__main__':
     main()
