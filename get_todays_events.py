@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
+import argparse
 import datetime
 import os.path
 from google.oauth2.credentials import Credentials
@@ -37,10 +38,17 @@ def main():
 
     service = build('calendar', 'v3', credentials=creds)
 
-    # Get today's date in local timezone
-    now = datetime.datetime.now().astimezone()  # Current time in local timezone
-    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-    end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999).isoformat()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--date', help='Date in YYYY-MM-DD format (default: today)')
+    args = parser.parse_args()
+
+    if args.date:
+        target = datetime.datetime.strptime(args.date, '%Y-%m-%d').astimezone()
+    else:
+        target = datetime.datetime.now().astimezone()
+
+    start_of_day = target.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    end_of_day = target.replace(hour=23, minute=59, second=59, microsecond=999999).isoformat()
 
     # Call the Calendar API
     events_result = service.events().list(calendarId='primary', timeMin=start_of_day,
