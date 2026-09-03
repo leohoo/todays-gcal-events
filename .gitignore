@@ -12,3 +12,4 @@ __pycache__/
 
 # Claude Code config (contains personal skills and settings)
 .claude/
+.python-version

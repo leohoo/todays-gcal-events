@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
+import argparse
 import datetime
 import os.path
 from google.oauth2.credentials import Credentials
@@ -11,8 +12,27 @@ from datetime import timezone
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+def is_declined(event):
+    """True if the user declined this invitation."""
+    for attendee in event.get('attendees', []):
+        if attendee.get('self') and attendee.get('responseStatus') == 'declined':
+            return True
+    return False
+
 def main():
     """Shows basic usage of the Google Calendar API."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--date', help='Date in YYYY-MM-DD format (default: today)')
+    args = parser.parse_args()
+
+    if args.date:
+        try:
+            target = datetime.datetime.strptime(args.date, '%Y-%m-%d').astimezone()
+        except ValueError:
+            parser.error(f"invalid --date {args.date!r}: expected YYYY-MM-DD")
+    else:
+        target = datetime.datetime.now().astimezone()
+
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -37,24 +57,24 @@ def main():
 
     service = build('calendar', 'v3', credentials=creds)
 
-    # Get today's date in local timezone
-    now = datetime.datetime.now().astimezone()  # Current time in local timezone
-    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-    end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999).isoformat()
+    start_of_day = target.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    end_of_day = target.replace(hour=23, minute=59, second=59, microsecond=999999).isoformat()
 
     # Call the Calendar API
     events_result = service.events().list(calendarId='primary', timeMin=start_of_day,
                                           timeMax=end_of_day, singleEvents=True,
                                           orderBy='startTime').execute()
-    events = events_result.get('items', [])
+    events = [event for event in events_result.get('items', [])
+              if event.get('eventType') in ('default', 'focusTime')
+              and not is_declined(event)]
 
+    date_label = target.strftime('%Y-%m-%d')
     if not events:
-        print('No events found for today.')
+        print(f'No events found for {date_label}.')
     else:
-        print('Today\'s events:')
+        print(f'Events on {date_label}:')
         for event in events:
-            if event.get('eventType') == 'default' or event.get('eventType') == 'focusTime':
-                print(f" - {event['summary']}")
+            print(f" - {event['summary']}")
 
 if __name__ == '__main__':
     main()
